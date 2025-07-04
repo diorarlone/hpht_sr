@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>hpht_sr — Profile</title>
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="profile.html">Profile</a>
+    <a href="https://github.com/diorarlone/hpht_sr" target="_blank">GitHub</a>
+  </nav>
+  <header>
+    <h1>Your hpht_sr Profile</h1>
+    <p>Manage your account and view your contributions</p>
+  </header>
+  <main>
+    <section>
+      <h2>Profile</h2>
+      <div id="profileInfo"></div>
+      <form id="updatePasswordForm" style="display: none;">
+        <input type="password" id="newPassword" placeholder="New Password" required aria-label="New Password">
+        <button type="submit">Update Password</button>
+      </form>
+      <button onclick="showUpdatePassword()">Change Password</button>
+    </section>
+    <section>
+      <h2>Your Comments</h2>
+      <ul id="userComments"></ul>
+    </section>
+    <section>
+      <h2>Your Locations</h2>
+      <ul id="userLocations"></ul>
+    </section>
+  </main>
+  <footer>
+    <p>© 2025 dior arlone | <a href="mailto:diorarlone@gmail.com">Contact</a></p>
+  </footer>
+  <script>
+    let token = null;
+    let userId = null;
+
+    // Check if user is logged in (load token/userId from sessionStorage)
+    token = sessionStorage.getItem('token');
+    userId = sessionStorage.getItem('userId');
+    if (!token || !userId) {
+      alert('Please log in to view your profile.');
+      window.location.href = 'index.html';
+    }
+
+    // Fetch user profile
+    function loadProfile() {
+      fetch('https://hpht-sr-api.herokuapp.com/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          console.log('Profile fetch status:', response.status);
+          if (response.status === 401) {
+            alert('Session expired. Please log in again.');
+            window.location.href = 'index.html';
+          }
+          return response.json();
+        })
+        .then(data => {
+          const profileInfo = document.getElementById('profileInfo');
+          profileInfo.innerHTML = `<p>Username: ${data.username}</p>`;
+        })
+        .catch(err => {
+          console.error('Error fetching profile:', err);
+          alert('Failed to load profile: ' + err.message);
+        });
+    }
+    loadProfile();
+
+    // Fetch user's comments
+    function loadUserComments() {
+      fetch(`https://hpht-sr-api.herokuapp.com/comments?userId=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          console.log('Comments fetch status:', response.status);
+          return response.json();
+        })
+        .then(comments => {
+          const list = document.getElementById('userComments');
+          list.innerHTML = '';
+          comments.forEach(c => {
+            const li = document.createElement('li');
+            li.textContent = `${c.text} (${new Date(c.timestamp).toLocaleString()})`;
+            list.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error('Error fetching comments:', err);
+          alert('Failed to load comments: ' + err.message);
+        });
+    }
+    loadUserComments();
+
+    // Fetch user's locations
+    function loadUserLocations() {
+      fetch(`https://hpht-sr-api.herokuapp.com/locations?userId=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          console.log('Locations fetch status:', response.status);
+          return response.json();
+        })
+        .then(locations => {
+          const list = document.getElementById('userLocations');
+          list.innerHTML = '';
+          locations.forEach(loc => {
+            const li = document.createElement('li');
+            li.textContent = `Lat: ${loc.lat}, Lng: ${loc.lng} (${new Date(loc.timestamp).toLocaleString()})`;
+            list.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error('Error fetching locations:', err);
+          alert('Failed to load locations: ' + err.message);
+        });
+    }
+    loadUserLocations();
+
+    // Show password update form
+    function showUpdatePassword() {
+      document.getElementById('updatePasswordForm').style.display = 'block';
+    }
+
+    // Update password
+    document.getElementById('updatePasswordForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+      console.log('Updating password'); // Debug
+      fetch('https://hpht-sr-api.herokuapp.com/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId, password: newPassword })
+      })
+        .then(response => {
+          console.log('Password update status:', response.status);
+          return response.json();
+        })
+        .then(data => {
+          alert(data.message || data.error);
+          document.getElementById('updatePasswordForm').style.display = 'none';
+          document.getElementById('newPassword').value = '';
+        })
+        .catch(err => {
+          console.error('Error updating password:', err);
+          alert('Failed to update password: ' + err.message);
+        });
+    });
+
+    // Store token/userId for page navigation
+    document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      fetch('https://hpht-sr-api.herokuapp.com/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.token) {
+            token = data.token;
+            userId = data.userId;
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('userId', userId);
+            // Rest of login logic
+          }
+        });
+    });
+  </script>
+</body>
+</html>
