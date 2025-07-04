@@ -22,6 +22,20 @@
   </header>
   <main>
     <section>
+      <h2>Login</h2>
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <p>Not a member? <a href="#" onclick="showRegister()">Register</a></p>
+      <form id="registerForm" style="display: none;">
+        <input type="text" id="regUsername" placeholder="Username" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <button type="submit">Register</button>
+      </form>
+    </section>
+    <section>
       <h2>What is hpht_sr?</h2>
       <p>hpht_sr is a new language designed to <em>improve web development and also provide opportunity for the youths out here</em>.</p>
       <p>Here is a sample syntax:</p>
@@ -48,10 +62,28 @@ hpht.runcode{}
       <p>Explore its features, goals, and discover why people should try it!</p>
     </section>
     <section>
+      <h2>Try hpht_sr</h2>
+      <textarea id="code" placeholder="Enter hpht_sr code"></textarea>
+      <button onclick="runCode()">Run Code</button>
+      <pre id="output"></pre>
+    </section>
+    <section>
+      <h2>Community Discussion</h2>
+      <form id="commentForm">
+        <textarea id="comment" placeholder="Share your thoughts or hpht_sr code" required></textarea>
+        <button type="submit">Post Comment</button>
+      </form>
+      <ul id="comments"></ul>
+    </section>
+    <section>
       <h2>Location Radar</h2>
       <p>Track locations in real-time with our interactive map!</p>
+      <select id="filter" onchange="loadLocations()">
+        <option value="all">All Locations</option>
+        <option value="recent">Recent (Last Hour)</option>
+      </select>
       <div id="map"></div>
-      <button onclick="sendLocation()">Share My Location</button>
+      <button onclick="sendLocation()" id="locationButton" style="display: none;">Share My Location</button>
     </section>
   </main>
   <footer>
@@ -60,54 +92,67 @@ hpht.runcode{}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
-    // Initialize the map
-    const map = L.map('map').setView([51.505, -0.09], 13); // Default to London
+    const map = L.map('map').setView([51.505, -0.09], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Connect to Socket.io
-    const socket = io('http://localhost:3000'); // Update to deployed API URL
+    const socket = io('http://localhost:3000');
+    let token = null;
+    let userId = null;
 
-    // Fetch initial locations
-    fetch('http://localhost:3000/locations')
-      .then(response => response.json())
-      .then(locations => {
-        locations.forEach(loc => {
-          L.marker([loc.lat, loc.lng]).addTo(map)
-            .bindPopup(`User: ${loc.userId}`);
-        });
-      })
-      .catch(err => console.error('Error fetching locations:', err));
+    function loadLocations() {
+      const filter = document.getElementById('filter').value;
+      let url = 'http://localhost:3000/locations';
+      if (filter === 'recent') {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        url += `?timestamp_gte=${oneHourAgo}`;
+      }
+      fetch(url)
+        .then(response => response.json())
+        .then(locations => {
+          map.eachLayer(layer => {
+            if (layer instanceof L.Marker) map.removeLayer(layer);
+          });
+          locations.forEach(loc => {
+            L.marker([loc.lat, loc.lng]).addTo(map)
+              .bindPopup(`User: ${loc.userId.username}`);
+          });
+        })
+        .catch(err => console.error('Error fetching locations:', err));
+    }
+    loadLocations();
 
-    // Listen for new locations
     socket.on('newLocation', (location) => {
       L.marker([location.lat, location.lng]).addTo(map)
-        .bindPopup(`User: ${location.userId}`);
+        .bindPopup(`User: ${location.userId.username}`);
     });
 
-    // Function to send location
     function sendLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
           const location = {
-            userId: 'user1', // Replace with dynamic user ID in production
+            userId: userId,
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
-          // Send via HTTP
           fetch('http://localhost:3000/locations', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'your-secret-key' // Match .env API_KEY
+              'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(location)
           })
             .then(response => response.json())
-            .then(data => console.log('Location sent:', data))
-            .catch(err => console.error('Error sending location:', err));
-          // Send via Socket.io
+            .then(data => {
+              console.log('Location sent:', data);
+              alert('Your location has been shared!');
+            })
+            .catch(err => {
+              console.error('Error sending location:', err);
+              alert('Failed to share location. Please try again.');
+            });
           socket.emit('sendLocation', location);
         }, (err) => {
           console.error('Geolocation error:', err);
@@ -116,6 +161,107 @@ hpht.runcode{}
       } else {
         alert('Geolocation is not supported by your browser.');
       }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.token) {
+            token = data.token;
+            userId = data.userId;
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('locationButton').style.display = 'block';
+            alert('Login successful!');
+          } else {
+            alert('Login failed: ' + data.error);
+          }
+        })
+        .catch(err => console.error('Login error:', err));
+    });
+
+    function showRegister() {
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('regUsername').value;
+      const password = document.getElementById('regPassword').value;
+      fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || data.error);
+          if (data.message) {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+          }
+        })
+        .catch(err => console.error('Register error:', err));
+    });
+
+    function loadComments() {
+      fetch('http://localhost:3000/comments')
+        .then(response => response.json())
+        .then(comments => {
+          const list = document.getElementById('comments');
+          list.innerHTML = '';
+          comments.forEach(c => {
+            const li = document.createElement('li');
+            li.textContent = `${c.username}: ${c.text} (${new Date(c.timestamp).toLocaleString()})`;
+            list.appendChild(li);
+          });
+        })
+        .catch(err => console.error('Error fetching comments:', err));
+    }
+    loadComments();
+
+    socket.on('newComment', (comment) => {
+      const list = document.getElementById('comments');
+      const li = document.createElement('li');
+      li.textContent = `${comment.username}: ${comment.text} (${new Date(comment.timestamp).toLocaleString()})`;
+      list.insertBefore(li, list.firstChild);
+    });
+
+    document.getElementById('commentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!token || !userId) {
+        alert('Please log in to post a comment.');
+        return;
+      }
+      const text = document.getElementById('comment').value;
+      fetch('http://localhost:3000/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId, text })
+      })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('comment').value = '';
+          alert('Comment posted!');
+        })
+        .catch(err => console.error('Error posting comment:', err));
+    });
+
+    function runCode() {
+      const code = document.getElementById('code').value;
+      document.getElementById('output').textContent = `Running:\n${code}\n\nOutput:\n[Mock] Parsed hpht_sr code successfully!`;
     }
   </script>
 </body>
