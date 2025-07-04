@@ -90,26 +90,28 @@ hpht.runcode{}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
-    // Initialize map with world view
+    // Initialize map with world view (no geolocation)
     const map = L.map('map').setView([0, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Center map on user's location if available
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        map.setView([position.coords.latitude, position.coords.longitude], 13);
-      }, (err) => console.error('Geolocation init error:', err));
-    }
-
-    const socket = io('https://hpht-sr-api.herokuapp.com'); // Update to your Heroku URL
+    const socket = io('https://hpht-sr-api.herokuapp.com'); // Replace with your Heroku URL
     let token = null;
     let userId = null;
 
+    // Load token/userId from sessionStorage
+    token = sessionStorage.getItem('token');
+    userId = sessionStorage.getItem('userId');
+    if (token && userId) {
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('locationButton').style.display = 'block';
+    }
+
     function loadLocations() {
       const filter = document.getElementById('filter').value;
-      let url = 'https://hpht-sr-api.herokuapp.com/locations';
+      let url = 'https://hpht-sr-api.herokuapp.com/locations'; // Replace with your Heroku URL
       if (filter === 'recent') {
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         url += `?timestamp_gte=${oneHourAgo}`;
@@ -117,6 +119,7 @@ hpht.runcode{}
       fetch(url)
         .then(response => {
           console.log('Locations fetch status:', response.status); // Debug
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(locations => {
@@ -130,7 +133,7 @@ hpht.runcode{}
         })
         .catch(err => {
           console.error('Error fetching locations:', err);
-          alert('Failed to load locations. Please try again.');
+          alert('Failed to load locations: ' + err.message);
         });
     }
     loadLocations();
@@ -143,6 +146,10 @@ hpht.runcode{}
     function sendLocation() {
       if (!token || !userId) {
         alert('Please log in to share your location.');
+        return;
+      }
+      if (!confirm('Allow hpht_sr to access your location?')) {
+        alert('Location access denied.');
         return;
       }
       if (navigator.geolocation) {
@@ -163,11 +170,13 @@ hpht.runcode{}
           })
             .then(response => {
               console.log('Location response status:', response.status); // Debug
+              if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
               return response.json();
             })
             .then(data => {
               console.log('Location sent:', data);
               alert('Your location has been shared!');
+              map.setView([data.lat, data.lng], 13); // Center map on shared location
             })
             .catch(err => {
               console.error('Error sending location:', err);
@@ -176,7 +185,7 @@ hpht.runcode{}
           socket.emit('sendLocation', location);
         }, (err) => {
           console.error('Geolocation error:', err);
-          alert('Failed to get location. Please enable geolocation.');
+          alert('Failed to get location: ' + err.message);
         });
       } else {
         alert('Geolocation is not supported by your browser.');
@@ -195,12 +204,15 @@ hpht.runcode{}
       })
         .then(response => {
           console.log('Login response status:', response.status); // Debug
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(data => {
           if (data.token) {
             token = data.token;
             userId = data.userId;
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('userId', userId);
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('locationButton').style.display = 'block';
@@ -236,6 +248,7 @@ hpht.runcode{}
       })
         .then(response => {
           console.log('Register response status:', response.status); // Debug
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(data => {
@@ -256,6 +269,7 @@ hpht.runcode{}
       fetch('https://hpht-sr-api.herokuapp.com/comments')
         .then(response => {
           console.log('Comments fetch status:', response.status); // Debug
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(comments => {
@@ -299,6 +313,7 @@ hpht.runcode{}
       })
         .then(response => {
           console.log('Comment response status:', response.status); // Debug
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(data => {
@@ -318,4 +333,3 @@ hpht.runcode{}
   </script>
 </body>
 </html>
-
