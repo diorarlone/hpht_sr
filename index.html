@@ -4,16 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>hpht_sr — Home</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    #map { height: 400px; width: 100%; margin-top: 20px; }
-  </style>
 </head>
 <body>
   <nav>
     <a href="index.html">Home</a>
     <a href="about.html">About</a>
+    <a href="profile.html">Profile</a>
     <a href="https://github.com/diorarlone/hpht_sr" target="_blank">GitHub</a>
   </nav>
   <header>
@@ -24,14 +22,14 @@
     <section>
       <h2>Login</h2>
       <form id="loginForm">
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
+        <input type="text" id="username" placeholder="Username" required aria-label="Username">
+        <input type="password" id="password" placeholder="Password" required aria-label="Password">
         <button type="submit">Login</button>
       </form>
       <p>Not a member? <a href="#" onclick="showRegister()">Register</a></p>
       <form id="registerForm" style="display: none;">
-        <input type="text" id="regUsername" placeholder="Username" required>
-        <input type="password" id="regPassword" placeholder="Password" required>
+        <input type="text" id="regUsername" placeholder="Username" required aria-label="Register Username">
+        <input type="password" id="regPassword" placeholder="Password" required aria-label="Register Password">
         <button type="submit">Register</button>
       </form>
     </section>
@@ -63,14 +61,14 @@ hpht.runcode{}
     </section>
     <section>
       <h2>Try hpht_sr</h2>
-      <textarea id="code" placeholder="Enter hpht_sr code"></textarea>
+      <textarea id="code" placeholder="Enter hpht_sr code" aria-label="hpht_sr Code Input"></textarea>
       <button onclick="runCode()">Run Code</button>
       <pre id="output"></pre>
     </section>
     <section>
       <h2>Community Discussion</h2>
       <form id="commentForm">
-        <textarea id="comment" placeholder="Share your thoughts or hpht_sr code" required></textarea>
+        <textarea id="comment" placeholder="Share your thoughts or hpht_sr code" required aria-label="Comment Input"></textarea>
         <button type="submit">Post Comment</button>
       </form>
       <ul id="comments"></ul>
@@ -78,12 +76,12 @@ hpht.runcode{}
     <section>
       <h2>Location Radar</h2>
       <p>Track locations in real-time with our interactive map!</p>
-      <select id="filter" onchange="loadLocations()">
+      <select id="filter" onchange="loadLocations()" aria-label="Location Filter">
         <option value="all">All Locations</option>
         <option value="recent">Recent (Last Hour)</option>
       </select>
-      <div id="map"></div>
-      <button onclick="sendLocation()" id="locationButton" style="display: none;">Share My Location</button>
+      <div id="map" role="region" aria-label="Interactive Map"></div>
+      <button onclick="sendLocation()" id="locationButton" style="display: none;" aria-label="Share My Location">Share My Location</button>
     </section>
   </main>
   <footer>
@@ -92,43 +90,61 @@ hpht.runcode{}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
-    const map = L.map('map').setView([51.505, -0.09], 13);
+    // Initialize map with world view
+    const map = L.map('map').setView([0, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    const socket = io('http://localhost:3000');
+    // Center map on user's location if available
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        map.setView([position.coords.latitude, position.coords.longitude], 13);
+      }, (err) => console.error('Geolocation init error:', err));
+    }
+
+    const socket = io('https://hpht-sr-api.herokuapp.com'); // Update to your Heroku URL
     let token = null;
     let userId = null;
 
     function loadLocations() {
       const filter = document.getElementById('filter').value;
-      let url = 'http://localhost:3000/locations';
+      let url = 'https://hpht-sr-api.herokuapp.com/locations';
       if (filter === 'recent') {
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         url += `?timestamp_gte=${oneHourAgo}`;
       }
       fetch(url)
-        .then(response => response.json())
+        .then(response => {
+          console.log('Locations fetch status:', response.status); // Debug
+          return response.json();
+        })
         .then(locations => {
           map.eachLayer(layer => {
             if (layer instanceof L.Marker) map.removeLayer(layer);
           });
           locations.forEach(loc => {
             L.marker([loc.lat, loc.lng]).addTo(map)
-              .bindPopup(`User: ${loc.userId.username}`);
+              .bindPopup(`User: ${loc.userId?.username || loc.userId}`);
           });
         })
-        .catch(err => console.error('Error fetching locations:', err));
+        .catch(err => {
+          console.error('Error fetching locations:', err);
+          alert('Failed to load locations. Please try again.');
+        });
     }
     loadLocations();
 
     socket.on('newLocation', (location) => {
       L.marker([location.lat, location.lng]).addTo(map)
-        .bindPopup(`User: ${location.userId.username}`);
+        .bindPopup(`User: ${location.userId?.username || location.userId}`);
     });
 
     function sendLocation() {
+      if (!token || !userId) {
+        alert('Please log in to share your location.');
+        return;
+      }
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
           const location = {
@@ -136,7 +152,8 @@ hpht.runcode{}
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
-          fetch('http://localhost:3000/locations', {
+          console.log('Sending location:', location); // Debug
+          fetch('https://hpht-sr-api.herokuapp.com/locations', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -144,14 +161,17 @@ hpht.runcode{}
             },
             body: JSON.stringify(location)
           })
-            .then(response => response.json())
+            .then(response => {
+              console.log('Location response status:', response.status); // Debug
+              return response.json();
+            })
             .then(data => {
               console.log('Location sent:', data);
               alert('Your location has been shared!');
             })
             .catch(err => {
               console.error('Error sending location:', err);
-              alert('Failed to share location. Please try again.');
+              alert('Failed to share location: ' + err.message);
             });
           socket.emit('sendLocation', location);
         }, (err) => {
@@ -165,14 +185,18 @@ hpht.runcode{}
 
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
+      console.log('Login form submitted'); // Debug
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-      fetch('http://localhost:3000/login', {
+      fetch('https://hpht-sr-api.herokuapp.com/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       })
-        .then(response => response.json())
+        .then(response => {
+          console.log('Login response status:', response.status); // Debug
+          return response.json();
+        })
         .then(data => {
           if (data.token) {
             token = data.token;
@@ -181,41 +205,59 @@ hpht.runcode{}
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('locationButton').style.display = 'block';
             alert('Login successful!');
+            loadLocations();
           } else {
+            console.log('Login failed:', data); // Debug
             alert('Login failed: ' + data.error);
           }
         })
-        .catch(err => console.error('Login error:', err));
+        .catch(err => {
+          console.error('Login error:', err);
+          alert('Login error: ' + err.message);
+        });
     });
 
     function showRegister() {
+      console.log('Showing register form'); // Debug
       document.getElementById('loginForm').style.display = 'none';
       document.getElementById('registerForm').style.display = 'block';
     }
 
     document.getElementById('registerForm').addEventListener('submit', (e) => {
       e.preventDefault();
+      console.log('Register form submitted'); // Debug
       const username = document.getElementById('regUsername').value;
       const password = document.getElementById('regPassword').value;
-      fetch('http://localhost:3000/register', {
+      console.log('Sending:', { username, password }); // Debug
+      fetch('https://hpht-sr-api.herokuapp.com/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       })
-        .then(response => response.json())
+        .then(response => {
+          console.log('Register response status:', response.status); // Debug
+          return response.json();
+        })
         .then(data => {
+          console.log('Register response:', data); // Debug
           alert(data.message || data.error);
           if (data.message) {
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
           }
         })
-        .catch(err => console.error('Register error:', err));
+        .catch(err => {
+          console.error('Register error:', err);
+          alert('Registration error: ' + err.message);
+        });
     });
 
     function loadComments() {
-      fetch('http://localhost:3000/comments')
-        .then(response => response.json())
+      fetch('https://hpht-sr-api.herokuapp.com/comments')
+        .then(response => {
+          console.log('Comments fetch status:', response.status); // Debug
+          return response.json();
+        })
         .then(comments => {
           const list = document.getElementById('comments');
           list.innerHTML = '';
@@ -225,7 +267,10 @@ hpht.runcode{}
             list.appendChild(li);
           });
         })
-        .catch(err => console.error('Error fetching comments:', err));
+        .catch(err => {
+          console.error('Error fetching comments:', err);
+          alert('Failed to load comments: ' + err.message);
+        });
     }
     loadComments();
 
@@ -243,7 +288,8 @@ hpht.runcode{}
         return;
       }
       const text = document.getElementById('comment').value;
-      fetch('http://localhost:3000/comments', {
+      console.log('Posting comment:', text); // Debug
+      fetch('https://hpht-sr-api.herokuapp.com/comments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -251,12 +297,18 @@ hpht.runcode{}
         },
         body: JSON.stringify({ userId, text })
       })
-        .then(response => response.json())
+        .then(response => {
+          console.log('Comment response status:', response.status); // Debug
+          return response.json();
+        })
         .then(data => {
           document.getElementById('comment').value = '';
           alert('Comment posted!');
         })
-        .catch(err => console.error('Error posting comment:', err));
+        .catch(err => {
+          console.error('Error posting comment:', err);
+          alert('Failed to post comment: ' + err.message);
+        });
     });
 
     function runCode() {
