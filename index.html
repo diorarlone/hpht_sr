@@ -2,9 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>hpht_sr — Home</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 400px; width: 100%; margin-top: 20px; }
+  </style>
 </head>
 <body>
   <nav>
@@ -17,12 +21,12 @@
     <p>Join our community for earning through hpht and exploring the _sr web language!</p>
   </header>
   <main>
-<section>
-  <h2>What is hpht_sr?</h2>
-  <p>hpht_sr is a new language designed to <em>improve web development and also provide opportunity for the youths out here</em>.</p>
-  <p>Here is a sample syntax:</p>
-  <pre><code># symmetry.r
-lane^&lt;&gt; 
+    <section>
+      <h2>What is hpht_sr?</h2>
+      <p>hpht_sr is a new language designed to <em>improve web development and also provide opportunity for the youths out here</em>.</p>
+      <p>Here is a sample syntax:</p>
+      <pre><code># symmetry.r
+lane^<> 
 {
   *HEADER o.p"welcome to hpht.sr"
   *PRIME o.p"hpht.sr"
@@ -32,8 +36,7 @@ pile^
   img."http.gigo.pampa.co.ke"o.P"diorarlone"
   o.p"black community"
 }
-
-base^&lt;&gt;
+base^<>
 {
   *PILE.1 o.p""
   *PILE.2 o.p""
@@ -42,11 +45,79 @@ base^&lt;&gt;
 }
 hpht.runcode{}
 </code></pre>
-  <p>Explore its features, goals, and discover why people should try it!</p>
-</section>
-</main>
+      <p>Explore its features, goals, and discover why people should try it!</p>
+    </section>
+    <section>
+      <h2>Location Radar</h2>
+      <p>Track locations in real-time with our interactive map!</p>
+      <div id="map"></div>
+      <button onclick="sendLocation()">Share My Location</button>
+    </section>
+  </main>
   <footer>
-    <p>&copy; 2025 dior arlone | <a href="mailto:diorarlone@gmail.com">Contact</a></p>
+    <p>© 2025 dior arlone | <a href="mailto:diorarlone@gmail.com">Contact</a></p>
   </footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    // Initialize the map
+    const map = L.map('map').setView([51.505, -0.09], 13); // Default to London
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Connect to Socket.io
+    const socket = io('http://localhost:3000'); // Update to deployed API URL
+
+    // Fetch initial locations
+    fetch('http://localhost:3000/locations')
+      .then(response => response.json())
+      .then(locations => {
+        locations.forEach(loc => {
+          L.marker([loc.lat, loc.lng]).addTo(map)
+            .bindPopup(`User: ${loc.userId}`);
+        });
+      })
+      .catch(err => console.error('Error fetching locations:', err));
+
+    // Listen for new locations
+    socket.on('newLocation', (location) => {
+      L.marker([location.lat, location.lng]).addTo(map)
+        .bindPopup(`User: ${location.userId}`);
+    });
+
+    // Function to send location
+    function sendLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const location = {
+            userId: 'user1', // Replace with dynamic user ID in production
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          // Send via HTTP
+          fetch('http://localhost:3000/locations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'your-secret-key' // Match .env API_KEY
+            },
+            body: JSON.stringify(location)
+          })
+            .then(response => response.json())
+            .then(data => console.log('Location sent:', data))
+            .catch(err => console.error('Error sending location:', err));
+          // Send via Socket.io
+          socket.emit('sendLocation', location);
+        }, (err) => {
+          console.error('Geolocation error:', err);
+          alert('Failed to get location. Please enable geolocation.');
+        });
+      } else {
+        alert('Geolocation is not supported by your browser.');
+      }
+    }
+  </script>
 </body>
 </html>
+
