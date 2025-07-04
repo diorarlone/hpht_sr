@@ -2,18 +2,18 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background: #f9f9f9;
-  color: #222;
+  background: #000000; /* Black background for the entire page */
+  color: #ffffff; /* White text for readability on black */
 }
 
 nav {
-  background: #222;
+  background: #1a3c34; /* Dark green for navigation bar */
   padding: 1em;
   text-align: center;
 }
 
 nav a {
-  color: #fff;
+  color: #ffffff; /* White text for nav links */
   margin: 0 1em;
   text-decoration: none;
   font-weight: bold;
@@ -21,11 +21,12 @@ nav a {
 
 nav a:hover {
   text-decoration: underline;
+  color: #a8e6cf; /* Light green for hover effect */
 }
 
 header {
-  background: #4e73df;
-  color: #fff;
+  background: #1a3c34; /* Dark green for header */
+  color: #ffffff; /* White text for readability */
   padding: 2em 1em;
   text-align: center;
 }
@@ -33,19 +34,21 @@ header {
 main {
   max-width: 700px;
   margin: 2em auto;
-  background: #fff;
+  background: #1c2526; /* Very dark gray for main content to contrast with black body */
   padding: 2em;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); /* Darker shadow for depth */
+  color: #ffffff; /* White text for readability */
 }
 
 h1, h2 {
   margin-top: 0;
+  color: #a8e6cf; /* Light green for headings to tie in dark green theme */
 }
 
 footer {
-  background: #222;
-  color: #fff;
+  background: #1a3c34; /* Dark green for footer */
+  color: #ffffff; /* White text */
   padding: 1em;
   text-align: center;
   font-size: 0.9em;
@@ -53,9 +56,35 @@ footer {
 }
 
 a {
-  color: #4e73df;
+  color: #a8e6cf; /* Light green for links to match theme */
 }
 
 a:visited {
-  color: #3454b4;
+  color: #6b9080; /* Slightly darker green for visited links */
 }
+
+#map {
+  height: 400px;
+  width: 100%;
+  margin-top: 20px;
+  border: 2px solid #1a3c34; /* Dark green border for map */
+  border-radius: 4px;
+  background: #000000; /* Black background for map container */
+}
+
+/* Ensure buttons are styled consistently */
+button {
+  background: #1a3c34; /* Dark green for buttons */
+  color: #ffffff; /* White text */
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #a8e6cf; /* Light green on hover */
+  color: #000000; /* Black text for contrast */
+}
+ 
