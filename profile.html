@@ -21,35 +21,31 @@
     <section>
       <h2>Profile</h2>
       <div id="profileInfo"></div>
-      <form id="updateUsernameForm" style="display: none;">
-        <input type="text" id="newUsername" placeholder="New Username" required aria-label="New Username">
-        <button type="submit" aria-label="Update Username">Update Username</button>
-      </form>
       <form id="updatePasswordForm" style="display: none;">
         <input type="password" id="newPassword" placeholder="New Password" required aria-label="New Password">
-        <button type="submit" aria-label="Update Password">Update Password</button>
+        <button type="submit">Update Password</button>
       </form>
-      <button onclick="showUpdateUsername()" aria-label="Change Username">Change Username</button>
-      <button onclick="showUpdatePassword()" aria-label="Change Password">Change Password</button>
-      <button onclick="logout()" aria-label="Logout">Logout</button>
+      <button onclick="showUpdatePassword()">Change Password</button>
     </section>
     <section>
       <h2>Your Comments</h2>
-      <ul id="userComments" role="list"></ul>
+      <ul id="userComments"></ul>
     </section>
     <section>
       <h2>Your Locations</h2>
-      <ul id="userLocations" role="list"></ul>
+      <ul id="userLocations"></ul>
     </section>
   </main>
   <footer>
     <p>© 2025 dior arlone | <a href="mailto:diorarlone@gmail.com">Contact</a></p>
   </footer>
   <script>
-    let token = sessionStorage.getItem('token');
-    let userId = sessionStorage.getItem('userId');
+    let token = null;
+    let userId = null;
 
-    // Redirect to login if not authenticated
+    // Check if user is logged in (load token/userId from sessionStorage)
+    token = sessionStorage.getItem('token');
+    userId = sessionStorage.getItem('userId');
     if (!token || !userId) {
       alert('Please log in to view your profile.');
       window.location.href = 'index.html';
@@ -66,21 +62,13 @@
           console.log('Profile fetch status:', response.status);
           if (response.status === 401) {
             alert('Session expired. Please log in again.');
-            sessionStorage.removeItem('token');
-            sessionStorage.removeItem('userId');
             window.location.href = 'index.html';
           }
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(data => {
           const profileInfo = document.getElementById('profileInfo');
-          profileInfo.innerHTML = `
-            <p>Username: ${data.username}</p>
-            <p>Joined: ${new Date(data.createdAt).toLocaleDateString()}</p>
-            <p>Total Comments: ${data.commentCount}</p>
-            <p>Total Locations Shared: ${data.locationCount}</p>
-          `;
+          profileInfo.innerHTML = `<p>Username: ${data.username}</p>`;
         })
         .catch(err => {
           console.error('Error fetching profile:', err);
@@ -98,7 +86,6 @@
       })
         .then(response => {
           console.log('Comments fetch status:', response.status);
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(comments => {
@@ -107,7 +94,6 @@
           comments.forEach(c => {
             const li = document.createElement('li');
             li.textContent = `${c.text} (${new Date(c.timestamp).toLocaleString()})`;
-            li.setAttribute('role', 'listitem');
             list.appendChild(li);
           });
         })
@@ -127,7 +113,6 @@
       })
         .then(response => {
           console.log('Locations fetch status:', response.status);
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(locations => {
@@ -136,7 +121,6 @@
           locations.forEach(loc => {
             const li = document.createElement('li');
             li.textContent = `Lat: ${loc.lat}, Lng: ${loc.lng} (${new Date(loc.timestamp).toLocaleString()})`;
-            li.setAttribute('role', 'listitem');
             list.appendChild(li);
           });
         })
@@ -147,53 +131,16 @@
     }
     loadUserLocations();
 
-    // Show username update form
-    function showUpdateUsername() {
-      document.getElementById('updateUsernameForm').style.display = 'block';
-      document.getElementById('updatePasswordForm').style.display = 'none';
-    }
-
     // Show password update form
     function showUpdatePassword() {
       document.getElementById('updatePasswordForm').style.display = 'block';
-      document.getElementById('updateUsernameForm').style.display = 'none';
     }
-
-    // Update username
-    document.getElementById('updateUsernameForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const newUsername = document.getElementById('newUsername').value;
-      console.log('Updating username:', newUsername);
-      fetch('https://hpht-sr-api.herokuapp.com/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId, username: newUsername })
-      })
-        .then(response => {
-          console.log('Username update status:', response.status);
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          alert(data.message || data.error);
-          document.getElementById('updateUsernameForm').style.display = 'none';
-          document.getElementById('newUsername').value = '';
-          loadProfile(); // Refresh profile info
-        })
-        .catch(err => {
-          console.error('Error updating username:', err);
-          alert('Failed to update username: ' + err.message);
-        });
-    });
 
     // Update password
     document.getElementById('updatePasswordForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const newPassword = document.getElementById('newPassword').value;
-      console.log('Updating password');
+      console.log('Updating password'); // Debug
       fetch('https://hpht-sr-api.herokuapp.com/profile', {
         method: 'PUT',
         headers: {
@@ -204,7 +151,6 @@
       })
         .then(response => {
           console.log('Password update status:', response.status);
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
           return response.json();
         })
         .then(data => {
@@ -218,13 +164,27 @@
         });
     });
 
-    // Logout
-    function logout() {
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('userId');
-      alert('Logged out successfully.');
-      window.location.href = 'index.html';
-    }
+    // Store token/userId for page navigation
+    document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      fetch('https://hpht-sr-api.herokuapp.com/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.token) {
+            token = data.token;
+            userId = data.userId;
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('userId', userId);
+            // Rest of login logic
+          }
+        });
+    });
   </script>
 </body>
 </html>
