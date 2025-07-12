@@ -7,7 +7,7 @@ body {
 }
 
 nav {
-  background: #1a3c34; /* Dark green for navigation bar */
+  background: #1e3a8a; /* Deep blue for navigation bar */
   padding: 1em;
   text-align: center;
 }
@@ -22,12 +22,12 @@ nav a {
 nav a:hover,
 nav a:focus {
   text-decoration: underline;
-  color: #a8e6cf; /* Light green for hover/focus effect */
+  color: #60a5fa; /* Light blue for hover/focus effect */
   outline: none; /* Remove default outline for accessibility */
 }
 
 header {
-  background: #1a3c34; /* Dark green for header */
+  background: #1e3a8a; /* Deep blue for header */
   color: #ffffff; /* White text for readability */
   padding: 2em 1em;
   text-align: center;
@@ -36,7 +36,7 @@ header {
 main {
   max-width: 700px;
   margin: 2em auto;
-  background: #1c2526; /* Very dark gray for main content */
+  background: #1c2526; /* Very dark gray for main content (kept for contrast) */
   padding: 2em;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); /* Darker shadow for depth */
@@ -45,11 +45,11 @@ main {
 
 h1, h2 {
   margin-top: 0;
-  color: #a8e6cf; /* Light green for headings */
+  color: #60a5fa; /* Light blue for headings */
 }
 
 footer {
-  background: #1a3c34; /* Dark green for footer */
+  background: #1e3a8a; /* Deep blue for footer */
   color: #ffffff; /* White text */
   padding: 1em;
   text-align: center;
@@ -58,24 +58,31 @@ footer {
 }
 
 a {
-  color: #a8e6cf; /* Light green for links */
+  color: #60a5fa; /* Light blue for links */
 }
 
 a:visited {
-  color: #6b9080; /* Slightly darker green for visited links */
+  color: #3b82f6; /* Slightly darker blue for visited links */
 }
 
 #map {
-  height: 400px;
+  height: 400px; /* Default height */
   width: 100%;
   margin-top: 20px;
-  border: 2px solid #1a3c34; /* Dark green border for map */
+  border: 2px solid #1e3a8a; /* Deep blue border for map */
   border-radius: 4px;
   background: #000000; /* Black background for map container */
+  transition: all 0.3s ease; /* Smooth transition for size changes */
+}
+
+#map.expanded {
+  height: 80vh; /* Expanded height (80% of viewport height) */
+  max-width: 100%; /* Full width when expanded */
+  z-index: 1000; /* Ensure it stays on top */
 }
 
 button {
-  background: #1a3c34; /* Dark green for buttons */
+  background: #1e3a8a; /* Deep blue for buttons */
   color: #ffffff; /* White text */
   border: none;
   padding: 0.5em 1em;
@@ -86,7 +93,7 @@ button {
 
 button:hover,
 button:focus {
-  background: #a8e6cf; /* Light green on hover/focus */
+  background: #60a5fa; /* Light blue on hover/focus */
   color: #000000; /* Black text for contrast */
   outline: 2px solid #ffffff; /* White outline for accessibility */
 }
@@ -95,15 +102,15 @@ input, textarea, select {
   width: 100%;
   padding: 0.5em;
   margin: 0.5em 0;
-  background: #1c2526; /* Dark gray background */
+  background: #1c2526; /* Dark gray background (kept for contrast) */
   color: #ffffff; /* White text */
-  border: 2px solid #1a3c34; /* Dark green border */
+  border: 2px solid #1e3a8a; /* Deep blue border */
   border-radius: 4px;
   font-family: Arial, sans-serif;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: #a8e6cf; /* Light green on focus */
+  border-color: #60a5fa; /* Light blue on focus */
   outline: none;
 }
 
@@ -118,7 +125,7 @@ textarea {
 }
 
 #comments li {
-  background: #1a3c34; /* Dark green for comment items */
+  background: #1e3a8a; /* Deep blue for comment items */
   padding: 0.5em;
   margin: 0.5em 0;
   border-radius: 4px;
@@ -126,7 +133,7 @@ textarea {
 
 #output {
   background: #1c2526; /* Dark gray for code output */
-  color: #a8e6cf; /* Light green for output text */
+  color: #60a5fa; /* Light blue for output text */
   padding: 1em;
   border-radius: 4px;
   white-space: pre-wrap;
@@ -140,6 +147,9 @@ textarea {
   }
   #map {
     height: 300px; /* Smaller map height on mobile */
+  }
+  #map.expanded {
+    height: 70vh; /* Smaller expanded height on mobile */
   }
   nav a {
     display: block;
