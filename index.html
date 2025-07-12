@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>hpht_sr — Home</title>
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=2">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
@@ -80,6 +80,7 @@ hpht.runcode{}
         <option value="all">All Locations</option>
         <option value="recent">Recent (Last Hour)</option>
       </select>
+      <button onclick="toggleMapSize()" id="toggleMapButton" aria-label="Toggle Map Size">Expand Map</button>
       <div id="map" role="region" aria-label="Interactive Map"></div>
       <button onclick="sendLocation()" id="locationButton" style="display: none;" aria-label="Share My Location">Share My Location</button>
     </section>
@@ -329,6 +330,19 @@ hpht.runcode{}
     function runCode() {
       const code = document.getElementById('code').value;
       document.getElementById('output').textContent = `Running:\n${code}\n\nOutput:\n[Mock] Parsed hpht_sr code successfully!`;
+    }
+
+    function toggleMapSize() {
+      const mapDiv = document.getElementById('map');
+      const toggleButton = document.getElementById('toggleMapButton');
+      if (mapDiv.classList.contains('expanded')) {
+        mapDiv.classList.remove('expanded');
+        toggleButton.textContent = 'Expand Map';
+      } else {
+        mapDiv.classList.add('expanded');
+        toggleButton.textContent = 'Collapse Map';
+      }
+      map.invalidateSize(); // Ensure Leaflet updates the map's size
     }
   </script>
 </body>
