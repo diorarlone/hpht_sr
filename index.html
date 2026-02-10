@@ -1,349 +1,511 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>hpht_sr — Home</title>
-  <link rel="stylesheet" href="style.css?v=2">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>-(hpht.sr -the virtual virus) - PREVIEW</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #000510 0%, #000a1a 100%);
+            font-family: 'Courier New', monospace;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #mainWindow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85vw;
+            max-width: 1400px;
+            height: 80vh;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid rgba(0, 100, 255, 0.5);
+            box-shadow: 0 0 50px rgba(0, 100, 255, 0.3), inset 0 0 50px rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        #titleBar {
+            background: linear-gradient(180deg, rgba(0, 50, 100, 0.6) 0%, rgba(0, 20, 40, 0.8) 100%);
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(0, 100, 255, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trafficLight {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .trafficLight.red {
+            background: #ff4444;
+            box-shadow: 0 0 8px #ff0000;
+        }
+
+        .trafficLight.yellow {
+            background: #ffaa00;
+            box-shadow: 0 0 8px #ff8800;
+        }
+
+        .trafficLight.green {
+            background: #00ff00;
+            box-shadow: 0 0 8px #00ff00;
+        }
+
+        #titleText {
+            color: rgba(0, 200, 255, 0.9);
+            font-size: 14px;
+            margin-left: 15px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
+        }
+
+        #contentArea {
+            padding: 30px;
+            height: calc(100% - 50px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(0deg, transparent 0px, rgba(0, 255, 255, 0.03) 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #mainTitle {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        #mainTitle h1 {
+            font-size: clamp(32px, 5vw, 56px);
+            color: #00d4ff;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+        }
+
+        #globeSection {
+            position: absolute;
+            top: 120px;
+            left: 30px;
+            z-index: 5;
+        }
+
+        #globeButton {
+            background: rgba(0, 100, 200, 0.3);
+            border: 1px solid rgba(0, 200, 255, 0.6);
+            color: #00ffff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: monospace;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+            margin-bottom: 15px;
+        }
+
+        #globeButton:hover {
+            background: rgba(0, 150, 255, 0.4);
+        }
+
+        #globeContainer {
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        #globeContainer.visible {
+            display: block;
+        }
+
+        #globeCanvas {
+            display: block;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.4));
+        }
+
+        #globeLabel {
+            margin-top: 10px;
+            font-size: 10px;
+            color: #00ff88;
+            text-align: center;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6);
+        }
+
+        #terminal {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(0, 255, 100, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00ff66;
+            text-shadow: 0 0 5px rgba(0, 255, 100, 0.5);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        #terminal.expanded {
+            height: 60%;
+        }
+
+        #terminal.collapsed {
+            height: 40%;
+        }
+
+        #terminalHeader {
+            margin-bottom: 10px;
+            color: #ff4444;
+            font-size: 11px;
+            text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+        }
+
+        .terminalLine {
+            margin-bottom: 4px;
+        }
+
+        .terminalLine .prompt {
+            color: #666;
+            margin-right: 8px;
+        }
+
+        .warningIcon {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.3;
+            animation: pulse 2s infinite;
+        }
+
+        .warningIcon.skull {
+            top: 130px;
+            right: 40px;
+            color: #ff3333;
+        }
+
+        .warningIcon.biohazard {
+            bottom: 40px;
+            right: 40px;
+            color: #ff8800;
+            animation-duration: 3s;
+        }
+
+        .warningIcon.alert {
+            top: 130px;
+            right: 80px;
+            font-size: 20px;
+            color: #ff0000;
+            animation-duration: 2.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+        }
+
+        @keyframes glitchFlash {
+            0%, 100% { filter: blur(0); }
+            50% { filter: blur(3px); }
+        }
+
+        #previewNotice {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 100, 0, 0.2);
+            border: 1px solid rgba(255, 150, 0, 0.5);
+            color: #ffaa00;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            z-index: 9999;
+            text-shadow: 0 0 5px rgba(255, 170, 0, 0.8);
+        }
+    </style>
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <a href="profile.html">Profile</a>
-    <a href="https://github.com/diorarlone/hpht_sr" target="_blank">GitHub</a>
-  </nav>
-  <header>
-    <h1>Welcome to hpht_sr</h1>
-    <p>Join our community for earning through hpht and exploring the _sr web language!</p>
-  </header>
-  <main>
-    <section>
-      <h2>Login</h2>
-      <form id="loginForm">
-        <input type="text" id="username" placeholder="Username" required aria-label="Username">
-        <input type="password" id="password" placeholder="Password" required aria-label="Password">
-        <button type="submit">Login</button>
-      </form>
-      <p>Not a member? <a href="#" onclick="showRegister()">Register</a></p>
-      <form id="registerForm" style="display: none;">
-        <input type="text" id="regUsername" placeholder="Username" required aria-label="Register Username">
-        <input type="password" id="regPassword" placeholder="Password" required aria-label="Register Password">
-        <button type="submit">Register</button>
-      </form>
-    </section>
-    <section>
-      <h2>What is hpht_sr?</h2>
-      <p>hpht_sr is a new language designed to <em>improve web development and also provide opportunity for the youths out here</em>.</p>
-      <p>Here is a sample syntax:</p>
-      <pre><code># symmetry.r
-lane^<> 
-{
-  *HEADER o.p"welcome to hpht.sr"
-  *PRIME o.p"hpht.sr"
-}
-pile^
-{
-  img."http.gigo.pampa.co.ke"o.P"diorarlone"
-  o.p"black community"
-}
-base^<>
-{
-  *PILE.1 o.p""
-  *PILE.2 o.p""
-  *PILE.4 o.p""
-  *PILE.4 o.p""
-}
-hpht.runcode{}
-</code></pre>
-      <p>Explore its features, goals, and discover why people should try it!</p>
-    </section>
-    <section>
-      <h2>Try hpht_sr</h2>
-      <textarea id="code" placeholder="Enter hpht_sr code" aria-label="hpht_sr Code Input"></textarea>
-      <button onclick="runCode()">Run Code</button>
-      <pre id="output"></pre>
-    </section>
-    <section>
-      <h2>Community Discussion</h2>
-      <form id="commentForm">
-        <textarea id="comment" placeholder="Share your thoughts or hpht_sr code" required aria-label="Comment Input"></textarea>
-        <button type="submit">Post Comment</button>
-      </form>
-      <ul id="comments"></ul>
-    </section>
-    <section>
-      <h2>Location Radar</h2>
-      <p>Track locations in real-time with our interactive map!</p>
-      <select id="filter" onchange="loadLocations()" aria-label="Location Filter">
-        <option value="all">All Locations</option>
-        <option value="recent">Recent (Last Hour)</option>
-      </select>
-      <button onclick="toggleMapSize()" id="toggleMapButton" aria-label="Toggle Map Size">Expand Map</button>
-      <div id="map" role="region" aria-label="Interactive Map"></div>
-      <button onclick="sendLocation()" id="locationButton" style="display: none;" aria-label="Share My Location">Share My Location</button>
-    </section>
-  </main>
-  <footer>
-    <p>© 2025 dior arlone | <a href="mailto:diorarlone@gmail.com">Contact</a></p>
-  </footer>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script>
-    // Initialize map with world view (no geolocation)
-    const map = L.map('map').setView([0, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    <div id="previewNotice">⚠ BROWSER PREVIEW - For desktop app, run START-WINDOWS.bat or START-UNIX.sh</div>
 
-    const socket = io('https://hpht-sr-api.herokuapp.com'); // Replace with your Heroku URL
-    let token = null;
-    let userId = null;
+    <canvas id="matrixCanvas"></canvas>
 
-    // Load token/userId from sessionStorage
-    token = sessionStorage.getItem('token');
-    userId = sessionStorage.getItem('userId');
-    if (token && userId) {
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('registerForm').style.display = 'none';
-      document.getElementById('locationButton').style.display = 'block';
-    }
+    <div id="mainWindow">
+        <div id="titleBar">
+            <div class="trafficLight red"></div>
+            <div class="trafficLight yellow"></div>
+            <div class="trafficLight green"></div>
+            <span id="titleText">「-(hpht.sr -the virtual virus)」</span>
+        </div>
 
-    function loadLocations() {
-      const filter = document.getElementById('filter').value;
-      let url = 'https://hpht-sr-api.herokuapp.com/locations'; // Replace with your Heroku URL
-      if (filter === 'recent') {
-        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-        url += `?timestamp_gte=${oneHourAgo}`;
-      }
-      fetch(url)
-        .then(response => {
-          console.log('Locations fetch status:', response.status); // Debug
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          return response.json();
-        })
-        .then(locations => {
-          map.eachLayer(layer => {
-            if (layer instanceof L.Marker) map.removeLayer(layer);
-          });
-          locations.forEach(loc => {
-            L.marker([loc.lat, loc.lng]).addTo(map)
-              .bindPopup(`User: ${loc.userId?.username || loc.userId}`);
-          });
-        })
-        .catch(err => {
-          console.error('Error fetching locations:', err);
-          alert('Failed to load locations: ' + err.message);
-        });
-    }
-    loadLocations();
+        <div id="contentArea">
+            <div id="scanlines"></div>
 
-    socket.on('newLocation', (location) => {
-      L.marker([location.lat, location.lng]).addTo(map)
-        .bindPopup(`User: ${location.userId?.username || location.userId}`);
-    });
+            <div id="mainTitle">
+                <h1>-(hpht.sr -the virtual virus)</h1>
+            </div>
 
-    function sendLocation() {
-      if (!token || !userId) {
-        alert('Please log in to share your location.');
-        return;
-      }
-      if (!confirm('Allow hpht_sr to access your location?')) {
-        alert('Location access denied.');
-        return;
-      }
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const location = {
-            userId: userId,
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          console.log('Sending location:', location); // Debug
-          fetch('https://hpht-sr-api.herokuapp.com/locations', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(location)
-          })
-            .then(response => {
-              console.log('Location response status:', response.status); // Debug
-              if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-              return response.json();
-            })
-            .then(data => {
-              console.log('Location sent:', data);
-              alert('Your location has been shared!');
-              map.setView([data.lat, data.lng], 13); // Center map on shared location
-            })
-            .catch(err => {
-              console.error('Error sending location:', err);
-              alert('Failed to share location: ' + err.message);
+            <div id="globeSection">
+                <button id="globeButton">◆ ACCESS GLOBE</button>
+                <div id="globeContainer">
+                    <canvas id="globeCanvas" width="300" height="300"></canvas>
+                    <div id="globeLabel">❖ GLOBAL INFECTION MAP ❖</div>
+                </div>
+            </div>
+
+            <div id="terminal" class="expanded">
+                <div id="terminalHeader">⚠ LIVE EXECUTION STREAM ⚠</div>
+                <div id="terminalContent"></div>
+            </div>
+
+            <div class="warningIcon skull">☠</div>
+            <div class="warningIcon biohazard">☢</div>
+            <div class="warningIcon alert">⚠</div>
+        </div>
+    </div>
+
+    <script>
+        let globeVisible = false;
+        let rotation = 0;
+        let infectionNodes = [];
+        let terminalLines = [];
+        let glitchOffset = 0;
+
+        const codeSamples = [
+            "ⴴ pygame ⴴ *",
+            "ⴴ numpy ⴴ array",
+            "⧖ 𑀯 ⟶ 𑀯 - I ⦵ 𑀯 > 0",
+            "  ᗉ 𑀯 ထ 𑀕 > I0 ⟶ Ө {BREACH DETECTED}",
+            "  ᗆ ⟶ Ө {INFILTRATING...}",
+            "⚻ ᑔ_exploit{node, depth}:",
+            "  ᗉ depth > ✺ ⟶ A⚯ ⦅I, 0⦆",
+            "  payload ⟶ Ѧ⦅node ထ 𑀕𐰃𐰃, depth⦆",
+            "  ᗉ payload > Ζ𐰃𐰃 ⟶ Ө {NODE COMPROMISED}",
+            "  A⚯ ⦅payload, depth = I⦆",
+            "⧖ target ⴴ ⦅𐌢𐰃, ✺𑀢, I𑀕𑀕, I𐰃𑀢, 𑀕0𐌢⦆:",
+            "  ᗉ target ≠ 0 ⦵ target < 𑀕𐰃𑀕:",
+            "    Ө {INFECTING NODE} = target",
+            "    ⍜ status ⟶ ᑔ_exploit{target, 𑀕}",
+            "⧖ i ⴴ ⦅0, ᗑ𐰃𐰃⦆ ⦵ i ⦵ ⦵ ⦵:",
+            "  vector ⟶ ⦅i ထ 𐌢, i / 𑀕⦆",
+            "  ᗉ vector⦅0⦆ > I00 ⟶ Ө {●BREACH●}",
+            "payload_stream ⟶ ⦅⦆",
+            "⧖ cycle ⴴ ⦅I, 𑀯𑀯𑀯𑀯⦆:",
+            "  ᗉ cycle ထ Ζ > 𑀕I ⦵ cycle < ᗑ𐌢:",
+            "    payload_stream.append{cycle}",
+            "    Ө {◆SYSTEM OVERRIDE◆} = cycle",
+            "  ᗆ ⟶ Ө {◆AWAITING SIGNAL◆}",
+            "ⴴ sys.core ⴴ execute",
+            "execute{payload_stream, mode⟶{STEALTH}}",
+            "Ө {❖NEURAL PATHWAYS MAPPED❖}",
+            "⧖ ⧖ ⧖ ⦵ ⦵ ⦵ INFINITE LOOP ⦵ ⦵ ⦵",
+            "⚠ WARNING: CONTAINMENT BREACH ⚠",
+            "Ө {✱PROPAGATION ACTIVE✱}",
+        ];
+
+        const matrixCanvas = document.getElementById('matrixCanvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+
+        const chars = '01ⴴ⧖Ѧ⚻ᗉᗆ𑀕ᗑ𐌢𐰃✺Ζ𑀢ᛣ𑀯';
+        const fontSize = 14;
+        const columns = Math.floor(matrixCanvas.width / fontSize);
+        const drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(0, 0, 15, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            matrixCtx.fillStyle = 'rgba(0, 100, 255, 0.15)';
+            matrixCtx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        const globeCanvas = document.getElementById('globeCanvas');
+        const globeCtx = globeCanvas.getContext('2d');
+
+        function drawGlobe() {
+            if (!globeVisible) return;
+            const centerX = 150, centerY = 150, radius = 120;
+            globeCtx.clearRect(0, 0, 300, 300);
+            globeCtx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+            globeCtx.lineWidth = 1;
+
+            for (let lat = -80; lat <= 80; lat += 20) {
+                globeCtx.beginPath();
+                for (let lon = 0; lon <= 360; lon += 5) {
+                    const adjustedLon = lon + rotation;
+                    const x = centerX + radius * Math.cos(lat * Math.PI / 180) * Math.cos(adjustedLon * Math.PI / 180);
+                    const y = centerY + radius * Math.sin(lat * Math.PI / 180);
+                    const z = radius * Math.cos(lat * Math.PI / 180) * Math.sin(adjustedLon * Math.PI / 180);
+                    if (z > 0) {
+                        if (lon === 0) globeCtx.moveTo(x, y);
+                        else globeCtx.lineTo(x, y);
+                    }
+                }
+                globeCtx.stroke();
+            }
+
+            for (let lon = 0; lon < 360; lon += 30) {
+                globeCtx.beginPath();
+                for (let lat = -90; lat <= 90; lat += 5) {
+                    const adjustedLon = lon + rotation;
+                    const x = centerX + radius * Math.cos(lat * Math.PI / 180) * Math.cos(adjustedLon * Math.PI / 180);
+                    const y = centerY + radius * Math.sin(lat * Math.PI / 180);
+                    const z = radius * Math.cos(lat * Math.PI / 180) * Math.sin(adjustedLon * Math.PI / 180);
+                    if (z > 0) {
+                        if (lat === -90) globeCtx.moveTo(x, y);
+                        else globeCtx.lineTo(x, y);
+                    }
+                }
+                globeCtx.stroke();
+            }
+
+            const scanY = (centerY + (Date.now() / 20) % 300) % 300;
+            globeCtx.strokeStyle = 'rgba(0, 255, 255, 0.6)';
+            globeCtx.beginPath();
+            globeCtx.arc(centerX, centerY, radius * (scanY / 300), 0, Math.PI * 2);
+            globeCtx.stroke();
+
+            infectionNodes.forEach(node => {
+                const adjustedLon = node.lon + rotation;
+                const x = centerX + radius * Math.cos(node.lat * Math.PI / 180) * Math.cos(adjustedLon * Math.PI / 180);
+                const y = centerY + radius * Math.sin(node.lat * Math.PI / 180);
+                const z = radius * Math.cos(node.lat * Math.PI / 180) * Math.sin(adjustedLon * Math.PI / 180);
+                if (z > 0) {
+                    globeCtx.fillStyle = `rgba(255, ${50 + node.intensity * 50}, 0, ${0.6 + node.intensity * 0.4})`;
+                    globeCtx.beginPath();
+                    globeCtx.arc(x, y, 3 + node.intensity * 3, 0, Math.PI * 2);
+                    globeCtx.fill();
+                    globeCtx.strokeStyle = `rgba(255, 0, 0, ${0.3 * node.intensity})`;
+                    globeCtx.lineWidth = 1;
+                    globeCtx.beginPath();
+                    globeCtx.arc(x, y, 5 + node.intensity * 10, 0, Math.PI * 2);
+                    globeCtx.stroke();
+                }
             });
-          socket.emit('sendLocation', location);
-        }, (err) => {
-          console.error('Geolocation error:', err);
-          alert('Failed to get location: ' + err.message);
+        }
+
+        setInterval(() => {
+            rotation = (rotation + 0.5) % 360;
+            drawGlobe();
+        }, 50);
+
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                infectionNodes.push({
+                    lat: (Math.random() - 0.5) * 180,
+                    lon: (Math.random() - 0.5) * 360,
+                    intensity: Math.random(),
+                    id: Date.now() + Math.random()
+                });
+            }
+            infectionNodes = infectionNodes.slice(-15);
+        }, 800);
+
+        function updateTerminal() {
+            const newLine = codeSamples[Math.floor(Math.random() * codeSamples.length)];
+            terminalLines.push(newLine);
+            terminalLines = terminalLines.slice(-20);
+            const terminalContent = document.getElementById('terminalContent');
+            terminalContent.innerHTML = '';
+            terminalLines.forEach((line, i) => {
+                const div = document.createElement('div');
+                div.className = 'terminalLine';
+                div.style.opacity = 0.4 + (i / terminalLines.length) * 0.6;
+                if (Math.random() > 0.95) div.style.filter = 'blur(1px)';
+                if (Math.random() > 0.98) div.style.transform = `translateX(${Math.random() * 4 - 2}px)`;
+                div.innerHTML = `<span class="prompt">></span>${line}`;
+                terminalContent.appendChild(div);
+            });
+        }
+
+        setInterval(updateTerminal, 600);
+
+        setInterval(() => {
+            glitchOffset = Math.random() > 0.9 ? (Math.random() - 0.5) * 10 : 0;
+            const mainTitle = document.querySelector('#mainTitle h1');
+            const mainWindow = document.getElementById('mainWindow');
+            mainTitle.style.textShadow = `0 0 20px rgba(0, 212, 255, 0.8), ${glitchOffset}px 0 5px rgba(255, 0, 0, 0.7), ${-glitchOffset}px 0 5px rgba(0, 255, 0, 0.7)`;
+            mainTitle.style.filter = `blur(${Math.abs(glitchOffset) * 0.1}px)`;
+            mainWindow.style.filter = `hue-rotate(${glitchOffset * 5}deg)`;
+            if (Math.random() > 0.95) {
+                mainTitle.style.animation = 'glitchFlash 0.1s';
+                setTimeout(() => { mainTitle.style.animation = 'none'; }, 100);
+            }
+        }, 100);
+
+        document.getElementById('globeButton').addEventListener('click', () => {
+            globeVisible = !globeVisible;
+            const container = document.getElementById('globeContainer');
+            const terminal = document.getElementById('terminal');
+            const button = document.getElementById('globeButton');
+            if (globeVisible) {
+                container.classList.add('visible');
+                terminal.classList.remove('expanded');
+                terminal.classList.add('collapsed');
+                button.textContent = '◆ HIDE GLOBE';
+            } else {
+                container.classList.remove('visible');
+                terminal.classList.remove('collapsed');
+                terminal.classList.add('expanded');
+                button.textContent = '◆ ACCESS GLOBE';
+            }
         });
-      } else {
-        alert('Geolocation is not supported by your browser.');
-      }
-    }
 
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      console.log('Login form submitted'); // Debug
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      fetch('https://hpht-sr-api.herokuapp.com/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
-        .then(response => {
-          console.log('Login response status:', response.status); // Debug
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          if (data.token) {
-            token = data.token;
-            userId = data.userId;
-            sessionStorage.setItem('token', token);
-            sessionStorage.setItem('userId', userId);
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('locationButton').style.display = 'block';
-            alert('Login successful!');
-            loadLocations();
-          } else {
-            console.log('Login failed:', data); // Debug
-            alert('Login failed: ' + data.error);
-          }
-        })
-        .catch(err => {
-          console.error('Login error:', err);
-          alert('Login error: ' + err.message);
+        window.addEventListener('resize', () => {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
         });
-    });
-
-    function showRegister() {
-      console.log('Showing register form'); // Debug
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('registerForm').style.display = 'block';
-    }
-
-    document.getElementById('registerForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      console.log('Register form submitted'); // Debug
-      const username = document.getElementById('regUsername').value;
-      const password = document.getElementById('regPassword').value;
-      console.log('Sending:', { username, password }); // Debug
-      fetch('https://hpht-sr-api.herokuapp.com/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
-        .then(response => {
-          console.log('Register response status:', response.status); // Debug
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          console.log('Register response:', data); // Debug
-          alert(data.message || data.error);
-          if (data.message) {
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-          }
-        })
-        .catch(err => {
-          console.error('Register error:', err);
-          alert('Registration error: ' + err.message);
-        });
-    });
-
-    function loadComments() {
-      fetch('https://hpht-sr-api.herokuapp.com/comments')
-        .then(response => {
-          console.log('Comments fetch status:', response.status); // Debug
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          return response.json();
-        })
-        .then(comments => {
-          const list = document.getElementById('comments');
-          list.innerHTML = '';
-          comments.forEach(c => {
-            const li = document.createElement('li');
-            li.textContent = `${c.username}: ${c.text} (${new Date(c.timestamp).toLocaleString()})`;
-            list.appendChild(li);
-          });
-        })
-        .catch(err => {
-          console.error('Error fetching comments:', err);
-          alert('Failed to load comments: ' + err.message);
-        });
-    }
-    loadComments();
-
-    socket.on('newComment', (comment) => {
-      const list = document.getElementById('comments');
-      const li = document.createElement('li');
-      li.textContent = `${comment.username}: ${comment.text} (${new Date(comment.timestamp).toLocaleString()})`;
-      list.insertBefore(li, list.firstChild);
-    });
-
-    document.getElementById('commentForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!token || !userId) {
-        alert('Please log in to post a comment.');
-        return;
-      }
-      const text = document.getElementById('comment').value;
-      console.log('Posting comment:', text); // Debug
-      fetch('https://hpht-sr-api.herokuapp.com/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId, text })
-      })
-        .then(response => {
-          console.log('Comment response status:', response.status); // Debug
-          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          document.getElementById('comment').value = '';
-          alert('Comment posted!');
-        })
-        .catch(err => {
-          console.error('Error posting comment:', err);
-          alert('Failed to post comment: ' + err.message);
-        });
-    });
-
-    function runCode() {
-      const code = document.getElementById('code').value;
-      document.getElementById('output').textContent = `Running:\n${code}\n\nOutput:\n[Mock] Parsed hpht_sr code successfully!`;
-    }
-
-    function toggleMapSize() {
-      const mapDiv = document.getElementById('map');
-      const toggleButton = document.getElementById('toggleMapButton');
-      if (mapDiv.classList.contains('expanded')) {
-        mapDiv.classList.remove('expanded');
-        toggleButton.textContent = 'Expand Map';
-      } else {
-        mapDiv.classList.add('expanded');
-        toggleButton.textContent = 'Collapse Map';
-      }
-      map.invalidateSize(); // Ensure Leaflet updates the map's size
-    }
-  </script>
+    </script>
 </body>
 </html>
+
