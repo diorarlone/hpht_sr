@@ -12,11 +12,12 @@
         }
 
         body {
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             background: linear-gradient(180deg, #000510 0%, #000a1a 100%);
             font-family: 'Courier New', monospace;
             width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         #matrixCanvas {
@@ -31,10 +32,10 @@
         }
 
         #mainWindow {
-            position: fixed;
-            top: 50%;
+            position: relative;
+            top: 5vh;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             width: 85vw;
             max-width: 1400px;
             height: 80vh;
@@ -44,6 +45,7 @@
             border-radius: 8px;
             overflow: hidden;
             z-index: 1;
+            margin-bottom: 30px;
         }
 
         #titleBar {
@@ -125,7 +127,7 @@
             z-index: 5;
         }
 
-        #globeButton {
+        .controlButton {
             background: rgba(0, 100, 200, 0.3);
             border: 1px solid rgba(0, 200, 255, 0.6);
             color: #00ffff;
@@ -136,11 +138,25 @@
             font-family: monospace;
             text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
             box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            display: block;
+            width: 180px;
         }
 
-        #globeButton:hover {
+        .controlButton:hover {
             background: rgba(0, 150, 255, 0.4);
+        }
+
+        #downloadButton {
+            background: rgba(200, 0, 100, 0.3);
+            border: 1px solid rgba(255, 0, 200, 0.6);
+            color: #ff00ff;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 0, 200, 0.3);
+        }
+
+        #downloadButton:hover {
+            background: rgba(255, 0, 150, 0.4);
         }
 
         #globeContainer {
@@ -167,6 +183,67 @@
             color: #00ff88;
             text-align: center;
             text-shadow: 0 0 5px rgba(0, 255, 136, 0.6);
+        }
+
+        /* Maximized Globe Overlay */
+        #globeMaximized {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #globeMaximized.visible {
+            display: flex;
+        }
+
+        #maximizedGlobeContainer {
+            position: relative;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.5);
+        }
+
+        #maximizedGlobeCanvas {
+            display: block;
+            filter: drop-shadow(0 0 40px rgba(0, 255, 255, 0.6));
+        }
+
+        #maximizedGlobeLabel {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #00ff88;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            letter-spacing: 3px;
+        }
+
+        #closeMaximized {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 0, 0, 0.3);
+            border: 1px solid rgba(255, 100, 100, 0.6);
+            color: #ff5555;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: monospace;
+            text-shadow: 0 0 5px rgba(255, 85, 85, 0.8);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+        }
+
+        #closeMaximized:hover {
+            background: rgba(255, 50, 50, 0.4);
         }
 
         #terminal {
@@ -261,6 +338,159 @@
             z-index: 9999;
             text-shadow: 0 0 5px rgba(255, 170, 0, 0.8);
         }
+
+        /* Advertisement Section */
+        #advertSection {
+            position: relative;
+            width: 85vw;
+            max-width: 1400px;
+            margin: 0 auto 30px auto;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(255, 0, 200, 0.4);
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(255, 0, 200, 0.3);
+            z-index: 1;
+        }
+
+        #advertSection h2 {
+            color: #ff00ff;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+            letter-spacing: 3px;
+        }
+
+        .productGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .productCard {
+            background: rgba(0, 20, 40, 0.6);
+            border: 1px solid rgba(0, 200, 255, 0.4);
+            border-radius: 6px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 100, 200, 0.2);
+        }
+
+        .productCard:hover {
+            border-color: rgba(255, 0, 200, 0.6);
+            box-shadow: 0 0 30px rgba(255, 0, 200, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .productCard h3 {
+            color: #00d4ff;
+            font-size: 22px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+        }
+
+        .productCard .version {
+            color: #ff00ff;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px rgba(255, 0, 255, 0.6);
+        }
+
+        .productCard .description {
+            color: #00ff88;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.4);
+        }
+
+        .productCard .features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .productCard .features li {
+            color: #00ffff;
+            font-size: 12px;
+            margin-bottom: 8px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .productCard .features li:before {
+            content: '◆';
+            position: absolute;
+            left: 0;
+            color: #ff00ff;
+        }
+
+        .productCard .price {
+            color: #ffaa00;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.8);
+        }
+
+        .productCard .buyButton {
+            background: rgba(255, 0, 200, 0.3);
+            border: 1px solid rgba(255, 0, 200, 0.6);
+            color: #ff00ff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: monospace;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 0, 200, 0.3);
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .productCard .buyButton:hover {
+            background: rgba(255, 0, 200, 0.5);
+            box-shadow: 0 0 25px rgba(255, 0, 200, 0.5);
+        }
+
+        .moreProducts {
+            text-align: center;
+            color: #00ffff;
+            font-size: 14px;
+            margin-top: 20px;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+        }
+
+        /* Copyright Section */
+        #copyrightSection {
+            position: relative;
+            width: 85vw;
+            max-width: 1400px;
+            margin: 0 auto 50px auto;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 100, 255, 0.3);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 100, 255, 0.2);
+        }
+
+        #copyrightSection p {
+            color: #00d4ff;
+            font-size: 13px;
+            margin: 8px 0;
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+        }
+
+        #copyrightSection .year {
+            color: #00ff88;
+        }
+
+        #copyrightSection .separator {
+            color: #666;
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
@@ -284,7 +514,9 @@
             </div>
 
             <div id="globeSection">
-                <button id="globeButton">◆ ACCESS GLOBE</button>
+                <button class="controlButton" id="globeButton">◆ ACCESS GLOBE</button>
+                <button class="controlButton" id="maximizeButton">◈ MAXIMIZE GLOBE</button>
+                <button class="controlButton" id="downloadButton">⬇ DOWNLOAD HPHT.SR</button>
                 <div id="globeContainer">
                     <canvas id="globeCanvas" width="300" height="300"></canvas>
                     <div id="globeLabel">❖ GLOBAL INFECTION MAP ❖</div>
@@ -302,8 +534,87 @@
         </div>
     </div>
 
+    <!-- Maximized Globe Overlay -->
+    <div id="globeMaximized">
+        <div id="maximizedGlobeContainer">
+            <button id="closeMaximized">✕ CLOSE</button>
+            <canvas id="maximizedGlobeCanvas" width="800" height="800"></canvas>
+            <div id="maximizedGlobeLabel">❖ GLOBAL INFECTION MAP - FULL SURVEILLANCE MODE ❖</div>
+        </div>
+    </div>
+
+    <!-- Advertisement Section -->
+    <div id="advertSection">
+        <h2>❖ ENHANCED VARIANTS AVAILABLE ❖</h2>
+        <div class="productGrid">
+            <div class="productCard">
+                <h3>X1-hpht</h3>
+                <div class="version">LEVEL 1 VARIANT</div>
+                <div class="description">Entry-level virtual virus with basic infiltration capabilities. Perfect for beginners exploring digital ecosystems.</div>
+                <ul class="features">
+                    <li>Basic Neural Mapping</li>
+                    <li>Standard Encryption Protocols</li>
+                    <li>Single-Node Exploitation</li>
+                    <li>Real-time Monitoring</li>
+                    <li>24/7 Support Access</li>
+                </ul>
+                <div class="price">$49.99</div>
+                <button class="buyButton">◆ ACQUIRE X1-hpht</button>
+            </div>
+
+            <div class="productCard">
+                <h3>X2-hpht</h3>
+                <div class="version">LEVEL 2 VARIANT</div>
+                <div class="description">Advanced deployment system with multi-vector attack patterns. Enhanced stealth and propagation algorithms.</div>
+                <ul class="features">
+                    <li>Advanced Neural Pathways</li>
+                    <li>Multi-Node Exploitation</li>
+                    <li>Quantum Encryption Layer</li>
+                    <li>Adaptive Stealth Mode</li>
+                    <li>Global Infection Mapping</li>
+                </ul>
+                <div class="price">$149.99</div>
+                <button class="buyButton">◆ ACQUIRE X2-hpht</button>
+            </div>
+
+            <div class="productCard">
+                <h3>X3-hpht</h3>
+                <div class="version">LEVEL 3 VARIANT - PREMIUM</div>
+                <div class="description">Ultimate virtual virus platform. Complete system override with autonomous propagation and self-evolution capabilities.</div>
+                <ul class="features">
+                    <li>Full System Override</li>
+                    <li>Self-Evolving AI Core</li>
+                    <li>Infinite Loop Generation</li>
+                    <li>Total Network Infiltration</li>
+                    <li>Priority Support & Updates</li>
+                </ul>
+                <div class="price">$299.99</div>
+                <button class="buyButton">◆ ACQUIRE X3-hpht</button>
+            </div>
+        </div>
+        <div class="moreProducts">
+            ⚠ More variants coming soon: X4-hpht, X5-hpht, XΩ-hpht ⚠
+        </div>
+    </div>
+
+    <!-- Copyright Section -->
+    <div id="copyrightSection">
+        <p>❖ -(hpht.sr -the virtual virus) ❖</p>
+        <p>
+            Copyright © <span class="year">2025</span> 
+            <span class="separator">|</span> 
+            <strong>-diorarlone</strong>
+            <span class="separator">|</span> 
+            All Rights Reserved
+        </p>
+        <p style="font-size: 11px; color: #666; margin-top: 10px;">
+            For educational and entertainment purposes only
+        </p>
+    </div>
+
     <script>
         let globeVisible = false;
+        let globeMaximizedVisible = false;
         let rotation = 0;
         let infectionNodes = [];
         let terminalLines = [];
@@ -371,67 +682,81 @@
 
         const globeCanvas = document.getElementById('globeCanvas');
         const globeCtx = globeCanvas.getContext('2d');
+        const maximizedGlobeCanvas = document.getElementById('maximizedGlobeCanvas');
+        const maximizedGlobeCtx = maximizedGlobeCanvas.getContext('2d');
 
-        function drawGlobe() {
-            if (!globeVisible) return;
-            const centerX = 150, centerY = 150, radius = 120;
-            globeCtx.clearRect(0, 0, 300, 300);
-            globeCtx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
-            globeCtx.lineWidth = 1;
+        function drawGlobeOnCanvas(ctx, width, height, centerX, centerY, radius) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
 
+            // Draw latitude lines
             for (let lat = -80; lat <= 80; lat += 20) {
-                globeCtx.beginPath();
+                ctx.beginPath();
                 for (let lon = 0; lon <= 360; lon += 5) {
                     const adjustedLon = lon + rotation;
                     const x = centerX + radius * Math.cos(lat * Math.PI / 180) * Math.cos(adjustedLon * Math.PI / 180);
                     const y = centerY + radius * Math.sin(lat * Math.PI / 180);
                     const z = radius * Math.cos(lat * Math.PI / 180) * Math.sin(adjustedLon * Math.PI / 180);
                     if (z > 0) {
-                        if (lon === 0) globeCtx.moveTo(x, y);
-                        else globeCtx.lineTo(x, y);
+                        if (lon === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
                     }
                 }
-                globeCtx.stroke();
+                ctx.stroke();
             }
 
+            // Draw longitude lines
             for (let lon = 0; lon < 360; lon += 30) {
-                globeCtx.beginPath();
+                ctx.beginPath();
                 for (let lat = -90; lat <= 90; lat += 5) {
                     const adjustedLon = lon + rotation;
                     const x = centerX + radius * Math.cos(lat * Math.PI / 180) * Math.cos(adjustedLon * Math.PI / 180);
                     const y = centerY + radius * Math.sin(lat * Math.PI / 180);
                     const z = radius * Math.cos(lat * Math.PI / 180) * Math.sin(adjustedLon * Math.PI / 180);
                     if (z > 0) {
-                        if (lat === -90) globeCtx.moveTo(x, y);
-                        else globeCtx.lineTo(x, y);
+                        if (lat === -90) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
                     }
                 }
-                globeCtx.stroke();
+                ctx.stroke();
             }
 
-            const scanY = (centerY + (Date.now() / 20) % 300) % 300;
-            globeCtx.strokeStyle = 'rgba(0, 255, 255, 0.6)';
-            globeCtx.beginPath();
-            globeCtx.arc(centerX, centerY, radius * (scanY / 300), 0, Math.PI * 2);
-            globeCtx.stroke();
+            // Draw scanning ring
+            const scanY = (centerY + (Date.now() / 20) % height) % height;
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.6)';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * (scanY / height), 0, Math.PI * 2);
+            ctx.stroke();
 
+            // Draw infection nodes
             infectionNodes.forEach(node => {
                 const adjustedLon = node.lon + rotation;
                 const x = centerX + radius * Math.cos(node.lat * Math.PI / 180) * Math.cos(adjustedLon * Math.PI / 180);
                 const y = centerY + radius * Math.sin(node.lat * Math.PI / 180);
                 const z = radius * Math.cos(node.lat * Math.PI / 180) * Math.sin(adjustedLon * Math.PI / 180);
                 if (z > 0) {
-                    globeCtx.fillStyle = `rgba(255, ${50 + node.intensity * 50}, 0, ${0.6 + node.intensity * 0.4})`;
-                    globeCtx.beginPath();
-                    globeCtx.arc(x, y, 3 + node.intensity * 3, 0, Math.PI * 2);
-                    globeCtx.fill();
-                    globeCtx.strokeStyle = `rgba(255, 0, 0, ${0.3 * node.intensity})`;
-                    globeCtx.lineWidth = 1;
-                    globeCtx.beginPath();
-                    globeCtx.arc(x, y, 5 + node.intensity * 10, 0, Math.PI * 2);
-                    globeCtx.stroke();
+                    const scale = width / 300; // Scale factor
+                    ctx.fillStyle = `rgba(255, ${50 + node.intensity * 50}, 0, ${0.6 + node.intensity * 0.4})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, (3 + node.intensity * 3) * scale, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = `rgba(255, 0, 0, ${0.3 * node.intensity})`;
+                    ctx.lineWidth = 1 * scale;
+                    ctx.beginPath();
+                    ctx.arc(x, y, (5 + node.intensity * 10) * scale, 0, Math.PI * 2);
+                    ctx.stroke();
                 }
             });
+        }
+
+        function drawGlobe() {
+            if (globeVisible) {
+                drawGlobeOnCanvas(globeCtx, 300, 300, 150, 150, 120);
+            }
+            if (globeMaximizedVisible) {
+                drawGlobeOnCanvas(maximizedGlobeCtx, 800, 800, 400, 400, 320);
+            }
         }
 
         setInterval(() => {
@@ -483,6 +808,7 @@
             }
         }, 100);
 
+        // Globe button event
         document.getElementById('globeButton').addEventListener('click', () => {
             globeVisible = !globeVisible;
             const container = document.getElementById('globeContainer');
@@ -499,6 +825,36 @@
                 terminal.classList.add('expanded');
                 button.textContent = '◆ ACCESS GLOBE';
             }
+        });
+
+        // Maximize globe button event
+        document.getElementById('maximizeButton').addEventListener('click', () => {
+            globeMaximizedVisible = true;
+            document.getElementById('globeMaximized').classList.add('visible');
+            drawGlobe();
+        });
+
+        // Close maximized globe
+        document.getElementById('closeMaximized').addEventListener('click', () => {
+            globeMaximizedVisible = false;
+            document.getElementById('globeMaximized').classList.remove('visible');
+        });
+
+        // Download button event (placeholder - you can add your download logic here)
+        document.getElementById('downloadButton').addEventListener('click', () => {
+            alert('⚠ DOWNLOAD FUNCTIONALITY\n\nThis is a placeholder for the download feature.\nYou can implement the actual download logic here later.');
+            // TODO: Add your download logic here
+            // Example:
+            // window.location.href = 'path/to/hphtsr-download.zip';
+        });
+
+        // Product buy buttons
+        document.querySelectorAll('.buyButton').forEach(button => {
+            button.addEventListener('click', function() {
+                const productName = this.closest('.productCard').querySelector('h3').textContent;
+                alert(`⚠ PURCHASE INITIATED\n\nProduct: ${productName}\n\nThis is a placeholder for the purchase functionality.\nYou can implement the actual purchase logic here later.`);
+                // TODO: Add your purchase/checkout logic here
+            });
         });
 
         window.addEventListener('resize', () => {
